@@ -71,7 +71,7 @@ type (
 		ODate          time.Time `json:"oDate" gorm:"column:oDate;not null"`                              // ODate.Local(),阳历当天0点
 		Term           string    `json:"term,omitempty" gorm:"column:term;not null"`                      // 如'除夕','万圣节','三伏'等
 		Desc           string    `json:"desc,omitempty" gorm:"column:desc;not null"`                      // 如'腊八节','下元节'等
-		Type           string    `json:"type,omitempty" gorm:"column:type;not null;size:2"`               // 各种和节日有关的类型
+		Type           string    `json:"type,omitempty" gorm:"column:type;not null;size:2"`               // a,c,h,i,t,用这种查询感觉看不出来啥:"SELECT *FROM perpetualCalendarAlmanac WHERE TYPE ='a' GROUP BY TERM HAVING COUNT(TERM)>1"
 		Value          string    `json:"value,omitempty" gorm:"column:value;not null"`                    // 如'国际残疾人日'等
 		Status         int       `json:"status,string,omitempty" gorm:"column:status;not null;default:0"` // 0 工作日,1 休假,2 上班,3 周末
 	}
