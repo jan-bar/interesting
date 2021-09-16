@@ -49,7 +49,8 @@ type (
 		Almanac []PerpetualCalendarAlmanac `json:"almanac"`
 	}
 	PerpetualCalendarAlmanac struct {
-		Id int `gorm:"primarykey"` // 自增主键
+		SolarId int `gorm:"column:solarId;primarykey"`             // 阳历ymd,作为主键
+		LunarId int `gorm:"column:lunarId;not null;index:lunarId"` // 阴历ymd,加入索引
 
 		Animal         string    `json:"animal" gorm:"column:animal;not null;size:4"`                     // 生肖
 		Suit           string    `json:"suit" gorm:"column:suit;not null"`                                // 宜
@@ -107,6 +108,11 @@ func GetPerpetualCalendar(year, mouth int) ([]PerpetualCalendarAlmanac, error) {
 	}
 
 	for i, v := range ret.Data[0].Almanac {
+		// 阳历ymd,作为主键
+		ret.Data[0].Almanac[i].SolarId = v.Year*10000 + v.Month*100 + v.Day
+		// 阴历ymd,加入索引
+		ret.Data[0].Almanac[i].LunarId = v.LunarYear*10000 + v.LunarMonth*100 + v.LunarDate
+
 		// 赋值大月
 		ret.Data[0].Almanac[i].IsBigMonthBool = v.IsBigMonth == "1"
 
