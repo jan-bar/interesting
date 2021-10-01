@@ -3,6 +3,7 @@ module interesting
 go 1.17
 
 require (
+	golang.org/x/sys v0.0.0-20210930212924-f542c8878de8
 	golang.org/x/text v0.3.7
 	gorm.io/driver/mysql v1.1.2
 	gorm.io/driver/sqlite v1.1.5

@@ -12,20 +12,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/sys/windows/registry"
 )
 
 func main() {
-	var filePath, passPhrase string
-	switch len(os.Args) {
-	case 3:
-		passPhrase = os.Args[2]
-		fallthrough
-	case 2:
-		filePath = os.Args[1]
-	default:
-		fmt.Printf("usage: %s file [pass]\n", os.Args[0])
-		return
+	var (
+		err        error
+		filePath   string
+		passPhrase string
+	)
+	if argc := len(os.Args); argc > 2 {
+		passPhrase, filePath = os.Args[1], os.Args[2]
+	} else {
+		if argc == 2 {
+			passPhrase = os.Args[1]
+		}
+		filePath, err = getPath()
+		if err != nil {
+			panic(err)
+		}
 	}
+	fmt.Printf("path:[%s],pass:[%s]\n", filePath, passPhrase)
 
 	const (
 		preHost = "S:\"Hostname\"="
@@ -33,8 +41,7 @@ func main() {
 		prePass = "S:\"Password V2\"=02:"
 	)
 	aesKey := sha256.Sum256([]byte(passPhrase))
-
-	err := filepath.Walk(filePath, func(path string, f os.FileInfo, err error) error {
+	err = filepath.Walk(filePath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
 		}
@@ -67,7 +74,7 @@ func main() {
 				data[1] = line[i+len(preUser):] // 为了去掉文件BOM头部
 				cnt++
 			} else if i = strings.Index(line, prePass); i >= 0 {
-				data[2], err = SecureCRTCryptoV2(aesKey[:], line[i+len(prePass):])
+				data[2], err = secureCRTCryptoV2(aesKey[:], line[i+len(prePass):])
 				if err != nil {
 					return err
 				}
@@ -84,7 +91,20 @@ func main() {
 	}
 }
 
-func SecureCRTCryptoV2(key []byte, Ciphertext string) (string, error) {
+func getPath() (string, error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\VanDyke\\SecureCRT", registry.QUERY_VALUE)
+	if err != nil {
+		return "", err
+	}
+	defer k.Close()
+	filePath, _, err := k.GetStringValue("Config Path")
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(filePath, "Sessions"), nil
+}
+
+func secureCRTCryptoV2(key []byte, Ciphertext string) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
