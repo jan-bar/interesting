@@ -3,7 +3,7 @@
 python decSecucrt.py dec -v2 "xxxxxx"
 ```
 
-使用decrypt.go解密文件。
+使用decrypt.go解密文件，更新后会自动通过注册表找到默认配置文件路径。
 ```shell
-go run decrypt.go secucrt/xxx.ini [pass]
+go run decrypt.go [pass] [secucrt/xxx.ini]
 ```
