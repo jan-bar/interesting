@@ -92,6 +92,10 @@ func main() {
 }
 
 func getPath() (string, error) {
+	cmderRoot := os.Getenv("CMDER_ROOT")
+	if cmderRoot != "" {
+		return filepath.Join(cmderRoot, "bin", "secucrt", "Config", "Sessions"), nil
+	}
 	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\VanDyke\\SecureCRT", registry.QUERY_VALUE)
 	if err != nil {
 		return "", err
@@ -120,7 +124,7 @@ func secureCRTCryptoV2(key []byte, Ciphertext string) (string, error) {
 
 	length := int(binary.LittleEndian.Uint32(CipherSrc))
 	if length+4+sha256.Size > len(CipherSrc) {
-		return "", errors.New("invalid size")
+		return "", errors.New("invalid Phrase Password")
 	}
 	var (
 		passByte   = CipherSrc[4 : 4+length]
@@ -135,7 +139,7 @@ func secureCRTCryptoV2(key []byte, Ciphertext string) (string, error) {
 		}
 	}
 	if ok {
-		return "", errors.New("invalid ciphertext")
+		return "", errors.New("invalid CipherText")
 	}
 	return string(passByte), nil
 }
