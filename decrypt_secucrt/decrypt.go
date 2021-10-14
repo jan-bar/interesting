@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,31 +18,19 @@ import (
 )
 
 func main() {
-	var (
-		err        error
-		filePath   string
-		passPhrase string
-	)
-	if argc := len(os.Args); argc > 2 {
-		passPhrase, filePath = os.Args[1], os.Args[2]
-	} else {
-		if argc == 2 {
-			passPhrase = os.Args[1]
-		}
-		filePath, err = getPath()
-		if err != nil {
-			panic(err)
-		}
-	}
-	fmt.Printf("path:[%s],pass:[%s]\n", filePath, passPhrase)
+	var filePath, password string
+	flag.StringVar(&filePath, "p", getPath(), "Sessions Config Path")
+	flag.StringVar(&password, "w", "", "Phrase Password")
+	flag.Parse()
+	fmt.Printf("path:[%s],pass:[%s]\n", filePath, password)
 
 	const (
 		preHost = "S:\"Hostname\"="
 		preUser = "S:\"Username\"="
 		prePass = "S:\"Password V2\"=02:"
 	)
-	aesKey := sha256.Sum256([]byte(passPhrase))
-	err = filepath.Walk(filePath, func(path string, f os.FileInfo, err error) error {
+	aesKey := sha256.Sum256([]byte(password))
+	err := filepath.Walk(filePath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
 		}
@@ -91,21 +80,21 @@ func main() {
 	}
 }
 
-func getPath() (string, error) {
+func getPath() string {
 	cmderRoot := os.Getenv("CMDER_ROOT")
 	if cmderRoot != "" {
-		return filepath.Join(cmderRoot, "bin", "secucrt", "Config", "Sessions"), nil
+		return filepath.Join(cmderRoot, "bin", "secucrt", "Config", "Sessions")
 	}
 	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\VanDyke\\SecureCRT", registry.QUERY_VALUE)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	defer k.Close()
 	filePath, _, err := k.GetStringValue("Config Path")
 	if err != nil {
-		return "", err
+		return ""
 	}
-	return filepath.Join(filePath, "Sessions"), nil
+	return filepath.Join(filePath, "Sessions")
 }
 
 func secureCRTCryptoV2(key []byte, Ciphertext string) (string, error) {
