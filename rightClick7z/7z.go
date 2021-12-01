@@ -1,12 +1,16 @@
+//go:build windows
+// +build windows
+
 package main
 
 import (
 	"bufio"
-	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"unsafe"
 )
 
@@ -23,6 +27,7 @@ func main() {
 func exec7z(p7z, srcFile, dstDir string) error {
 	exe7z := filepath.Join(p7z, "7z.exe")
 	cmd := exec.Command(exe7z, "l", "-slt", srcFile)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 
 	cr, err := cmd.StdoutPipe()
 	if err != nil {
@@ -39,37 +44,49 @@ func exec7z(p7z, srcFile, dstDir string) error {
 			return err
 		}
 		if line == "----------" {
-			break // 从下面开始遍历
+			break // 遇到该标志才开始遍历
 		}
 	}
 
-	var tmp string
+	var (
+		root     string
+		multiple bool
+	)
 	for {
 		line, err := readLineSlice(br)
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			return err
 		}
-		if strings.HasPrefix(line, "Path = ") {
+		if len(line) > 7 && strings.EqualFold(line[:7], "Path = ") {
 			if i := strings.IndexByte(line, os.PathSeparator); i > 0 {
-				line = line[:i]
+				line = line[7:i]
+			} else {
+				line = line[7:]
 			}
-			fmt.Println(line)
-			if tmp == "" {
-				tmp = line
-			} else if tmp != line {
-				fmt.Println(tmp, line, "have")
-				break
+
+			if root != line {
+				if root != "" {
+					//goland:noinspection GoUnhandledErrorResult
+					go cmd.Process.Kill()
+					multiple = true // 说明存在不同顶级目录
+					break
+				}
+
+				r := make([]byte, len(line))
+				copy(r, line) // 字符串的深复制
+				root = *(*string)(unsafe.Pointer(&r))
 			}
 		}
 	}
 
-	//return exec7zG(p7z, srcFile, dstDir)
-	return nil
-}
-
-func exec7zG(p7z, srcFile, dstDir string) error {
-	exe7zG := filepath.Join(p7z, "7zG.exe")
-	return exec.Command(exe7zG, "x", "-o"+dstDir, srcFile).Run()
+	if multiple {
+		dstDir = filepath.Join(dstDir, filepath.Base(srcFile))
+	}
+	return exec.Command(filepath.Join(p7z, "7zG.exe"),
+		"x", "-o"+dstDir, srcFile).Run()
 }
 
 func readLineSlice(br *bufio.Reader) (string, error) {
@@ -80,6 +97,7 @@ func readLineSlice(br *bufio.Reader) (string, error) {
 			return "", err
 		}
 		if line == nil && !more {
+			// 注意这里返回的string会因为byte内容改变而改变
 			return *(*string)(unsafe.Pointer(&l)), nil
 		}
 		line = append(line, l...)
