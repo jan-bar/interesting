@@ -1,11 +1,9 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"golang.org/x/sys/windows/registry"
@@ -53,43 +51,16 @@ func set7zIco() error {
 	return nil
 }
 
-//go:embed ico
-var icoFile embed.FS
-
 func createIco() (map[string]string, error) {
-	dir, err := os.UserConfigDir()
+	fs, err := os.ReadDir("ico")
 	if err != nil {
 		return nil, err
 	}
-
-	fs, err := icoFile.ReadDir("ico")
-	if err != nil {
-		return nil, err
-	}
-
-	dir = filepath.Join(dir, "janbar", "ico7z")
-	if fileNotExists(dir) {
-		_ = os.MkdirAll(dir, 0666)
-	}
-
-	haveIco := make(map[string]string)
+	ico := make(map[string]string)
 	for _, v := range fs {
-		name := v.Name()
-		data, err := icoFile.ReadFile("ico/" + name)
-		if err != nil {
-			return nil, err
-		}
 
-		dst := filepath.Join(dir, name)
-		if fileNotExists(dst) {
-			err = os.WriteFile(dst, data, 0666)
-			if err != nil {
-				return nil, err
-			}
-		}
-		haveIco[name[:len(name)-4]] = "\"" + dst + "\""
 	}
-	return haveIco, nil
+	return nil, nil
 }
 
 func set7zDefaultIcon(key, val string) error {
