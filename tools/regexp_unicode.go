@@ -19,6 +19,9 @@ func parseUnicode(s string) string {
 		return s // 转换错误,或者超出定义范围返回原字符串
 	}
 
+	// 标准库里面的方法,也是将字符转换为utf8字节
+	// return string(utf8.AppendRune(nil, rune(i)))
+
 	/* https://en.wikipedia.org/wiki/UTF-8, 根据如下规则进行转换
 	First code point  Last code point   Byte 1    Byte 2    Byte 3    Byte 4
 	          U+0000           U+007F  0xxxxxxx
