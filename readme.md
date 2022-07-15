@@ -5,3 +5,4 @@
 
 [decrypt_secucrt](decrypt_secucrt): 解密secucrt密码
 
+[tools](tools): 各种有意思的方法

@@ -1,4 +1,4 @@
-package tools
+package regexp
 
 import (
 	"regexp"
@@ -12,7 +12,7 @@ func TestReplaceUnicode(t *testing.T) {
 	r0 := regexp.MustCompile(s0)
 
 	// 这种是外部传入\u格式字符,不经过转换regexp库会直接报错
-	s1 := ReplaceUnicode(`^[\u4e00-\u9fa5\w]{1,20}$`)
+	s1 := ReplaceUnicode([]byte(`^[\u4e00-\u9fa5\w]{1,20}$`))
 	r1 := regexp.MustCompile(s1)
 
 	if s0 != s1 {
