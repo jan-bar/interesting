@@ -1,4 +1,4 @@
-package io
+package iox
 
 import (
 	rand2 "crypto/rand"

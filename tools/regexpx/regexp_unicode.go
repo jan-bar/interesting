@@ -1,4 +1,4 @@
-package regexp
+package regexpx
 
 import (
 	"regexp"
