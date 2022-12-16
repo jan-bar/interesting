@@ -11,7 +11,13 @@ import (
 
 //goland:noinspection GoUnusedGlobalVariable,SpellCheckingInspection
 var (
-	z7dll = syscall.NewLazyDLL(`D:\Download\7z2201-extra\x64\7za.dll`)
+	createObject       *syscall.LazyProc
+	getNumberOfFormats *syscall.LazyProc
+	getNumberOfMethods *syscall.LazyProc
+)
+
+func LoadDll(s string) {
+	z7dll := syscall.NewLazyDLL(s)
 
 	// createDecoder       = z7dll.NewProc("CreateDecoder")
 	// createEncoder       = z7dll.NewProc("CreateEncoder")
@@ -26,7 +32,7 @@ var (
 	// setCaseSensitive    = z7dll.NewProc("SetCaseSensitive")
 	// setCodecs           = z7dll.NewProc("SetCodecs")
 	// setLargePageMode    = z7dll.NewProc("SetLargePageMode")
-)
+}
 
 type GUID string
 

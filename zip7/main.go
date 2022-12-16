@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"unsafe"
@@ -17,9 +18,17 @@ import (
 有关压缩还是用下面那些纯Go实现的吧，或者用标准库的zip也够用了，这份研究暂时封存吧
 https://github.com/bodgit/sevenzip
 https://github.com/ulikunitz/xz
+
+go run main.go -7z d:\7z.dll -f d:\xxx.7z
 */
 
 func main() {
+	z7dll := flag.String("7z", "7z.dll", "")
+	z7zip := flag.String("f", "xxx.7z", "")
+	flag.Parse()
+
+	z7.LoadDll(*z7dll)
+
 	var iInArchive *z7.IInArchive
 	err := z7.CreateObject(z7.CLSIDFormat7z.ToGuid(), z7.IIDIInArchive.ToGuid(),
 		uintptr(unsafe.Pointer(&iInArchive)))
@@ -28,7 +37,7 @@ func main() {
 	}
 
 	// 目前制作到打开不加密的压缩包
-	fr, err := os.Open(`D:\complex.7z`)
+	fr, err := os.Open(*z7zip)
 	if err != nil {
 		panic(err)
 	}
