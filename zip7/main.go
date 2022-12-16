@@ -8,6 +8,17 @@ import (
 	"interesting/zip7/z7"
 )
 
+/*
+本项目查询了多方资料，最终只做到读取非加密的7z文件,加密的回调一直没调通
+
+个人感觉调用dll方式操作7z文件简直不太行，而且网上也没多少调用7z.dll的资料
+由于是C++导出的dll，不想C导出dll那样简单，但是7z也有C语言版本，可以编译dll和so
+
+有关压缩还是用下面那些纯Go实现的吧，或者用标准库的zip也够用了，这份研究暂时封存吧
+https://github.com/bodgit/sevenzip
+https://github.com/ulikunitz/xz
+*/
+
 func main() {
 	var iInArchive *z7.IInArchive
 	err := z7.CreateObject(z7.CLSIDFormat7z.ToGuid(), z7.IIDIInArchive.ToGuid(),
@@ -16,7 +27,8 @@ func main() {
 		panic(err)
 	}
 
-	fr, err := os.Open(`D:\code_project\python\project\pylib7zip\tests\complex\complex.7z`)
+	// 目前制作到打开不加密的压缩包
+	fr, err := os.Open(`D:\complex.7z`)
 	if err != nil {
 		panic(err)
 	}

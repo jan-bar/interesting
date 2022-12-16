@@ -193,13 +193,13 @@ func init() {
 
 var sysAllocString *syscall.LazyProc
 
-func SysAllocString(s string) *uint16 /*BSTR*/ {
+func SysAllocString(s string) *int16 {
 	ret, _, _ := syscall.Syscall(sysAllocString.Addr(), 1,
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(s))),
 		0,
 		0)
 
-	return (*uint16) /*BSTR*/ (unsafe.Pointer(ret))
+	return (*int16)(unsafe.Pointer(ret))
 }
 
 func NewIArchiveOpenCallback(pass ...string) *IArchiveOpenCallback {
@@ -207,6 +207,8 @@ func NewIArchiveOpenCallback(pass ...string) *IArchiveOpenCallback {
 		Vtable: &IArchiveOpenCallbackVtable{
 			IUnknown: IUnknown{
 				QueryInterface: syscall.NewCallback(func(self *IUnknownI, iid uintptr, outObj **IUnknownI) uintptr {
+					return E_NOINTERFACE // 可以打开不加密的压缩包
+
 					//goland:noinspection GoVetUnsafePointer
 					var (
 						z  = (*IArchiveOpenCallback)(unsafe.Pointer(self))
@@ -216,11 +218,11 @@ func NewIArchiveOpenCallback(pass ...string) *IArchiveOpenCallback {
 					if GuidToGuid(id) == ICryptoGetTextPassword {
 						xx := &ICryptoGetTextPasswordI{
 							Vtable: &ICryptoGetTextPasswordIV{
-								CryptoGetTextPassword: syscall.NewCallback(func(self uintptr, pass *IUnknownI) uintptr {
+								CryptoGetTextPassword: syscall.NewCallback(func(self, pass uintptr) uintptr {
 									xxx := SysAllocString("123")
 
-									a := (*uint16)(unsafe.Pointer(pass))
-									*a = *xxx
+									a := (*int16)(unsafe.Pointer(pass))
+									a = xxx
 
 									fmt.Println(*a)
 									return E_OK
