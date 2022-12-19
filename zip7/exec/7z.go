@@ -16,6 +16,14 @@ https://7-zip.org/a/7z2201-extra.7z
 
 中文帮助文档: https://github.com/sparanoid/7z/blob/master/zh-cn/7-zip.chm
 
+7z:   最全的7z工具
+7za:  是一个独立的可执行文件。7za 处理的存档格式比 7z 少，但不需要任何其他格式
+7zr:  同7za是独立可执行文件，7zr 是 7za 的“精简版”，只能处理 7z 档案，
+7zz:  是官网下载的Linux版本，依赖libc
+7zzs: 是官网下载的Linux版本，没有任何依赖
+可以执行 `7z i` `7za i` `7zr i` `7zz i` `7zzs i` 来查看支持的格式
+
+
 7-Zip (a) 22.01 (x64) : Copyright (c) 1999-2022 Igor Pavlov : 2022-07-15
 
 Usage: 7za <command> [<switches>...] <archive_name> [<file_names>...] [@listfile]
@@ -24,14 +32,14 @@ Usage: 7za <command> [<switches>...] <archive_name> [<file_names>...] [@listfile
   a : 添加文件到压缩档案
   b : 测试 CPU 运行速度及检查内存错误
   d : 从压缩档案删除文件
-  e : 从存档中提取文件（不使用目录名）
+  e : 从存档中提取文件（不使用目录名）,结果就是所有文件都在-o目录同级
   h : 计算文件的哈希值
   i : 显示有关支持格式的信息
   l : 列出存档内容
  rn : 重命名存档中的文件
   t : 测试存档的完整性
   u : 更新文件以存档
-  x : 使用完整路径提取文件
+  x : 使用完整路径提取文件,结果是按照压缩时的目录层级解压
 
 <Switches>
   -- : 在命令行中使"--"后的选项开关"-"都失效。这样就允许在命令行中使用文件名以"-"开头的文件
@@ -135,6 +143,8 @@ Usage: 7za <command> [<switches>...] <archive_name> [<file_names>...] [@listfile
      上述2个文件可以在7z安装包中找到，还可以用copy命令创建自解压安装文件
   -si[{name}] : 从标准输入读取数据
       name: 为标准输入内容命名,没有则文件没名字
+      只支持从标准输入读取: xz,lzma,tar,gzip,bzip2文档
+      标准输入最好是单文件压缩，可以是tar命令的管道输出
   -slp : 设置大页面模式
      -slp:  开启大页面
      -slp-: 关闭大内存模式。此选项为默认值。
@@ -147,6 +157,10 @@ Usage: 7za <command> [<switches>...] <archive_name> [<file_names>...] [@listfile
     -sns: 启用“存储 NTFS 备用流”模式。如果您提取存档，这是默认选项。
     -sns-: 禁用“存储 NTFS 备用流”模式。这是默认选项，如果您创建存档或调用“列表”命令。
   -so : 将数据写入标准输出
+       所有文件的内容将通过标准输出传输
+       标准输出为单文件则输出内容只创建一个文件
+       如果文档包含多个文件,那么标准输出将所有文件都一起输出,如需分隔需要自定义格式
+       如果用于创建,则只能是:xz,gzip,bzip2,tar这几种格式
   -spd : 禁用文件名的通配符匹配
   -spe : 消除提取命令的根文件夹重复
   -spf : 使用完全限定的文件路径
