@@ -99,6 +99,10 @@ Usage: 7za <command> [<switches>...] <archive_name> [<file_names>...] [@listfile
             1 or more WAV file analysis (for Delta filter).
             7 or more EXE file analysis (for Executable filters).
             9 or more analysis of all files (Delta and executable filters).
+        -mmemuse=[ p{N_Percents} | {N}b | {N}k | {N}m | {N}g | {N}t]
+            限制压缩和解压缩的内存大小,p60 表示60%内存,14g 表示14GiB
+        -mhc=[off | on] 启用归档头压缩,默认on
+        -mhe=[off | on] 启用归档头加密,默认off,启用加密后必须输入密码才能看到列表
   -o{Directory} : 设置输出目录,不存在会自动创建
   -p{Password} : 设置密码
   -r[-|0] : 用于名称搜索的递归子目录

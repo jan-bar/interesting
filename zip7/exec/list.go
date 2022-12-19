@@ -17,12 +17,12 @@ type FileList struct {
 	CRC        string
 }
 
-func List(s string, pass ...string) ([]FileList, error) {
+func List(s string, pass ...string) (fs []FileList, err error) {
 	cmd := &exec.Cmd{
 		Path: z7path, // 已经通过init成功,这里直接返回对象
 		Args: append([]string{z7path}, "l", "-slt", s),
 	}
-	if len(pass) > 0 {
+	if len(pass) > 0 && pass[0] != "" {
 		cmd.Args = append(cmd.Args, "-p"+pass[0])
 	}
 
@@ -35,7 +35,12 @@ func List(s string, pass ...string) ([]FileList, error) {
 	}
 
 	defer func() {
-		_ = cmd.Wait() // 保证子进程退出
+		err1 := cmd.Wait() // 保证子进程退出
+		if err == nil && err1 != nil {
+			if e, ok := err1.(*exec.ExitError); ok {
+				err = Z7Err(e.ExitCode())
+			}
+		}
 	}()
 
 	var (
@@ -45,41 +50,41 @@ func List(s string, pass ...string) ([]FileList, error) {
 
 	br := bufio.NewScanner(cr)
 	for br.Scan() {
-		line := strings.Split(br.Text(), " = ")
-		if len(line) != 2 {
+		key, val, ok := strings.Cut(br.Text(), " = ")
+		if !ok {
 			continue
 		}
 
-		switch line[0] {
+		switch key {
 		case "Path":
 			if tmp.Path != "" {
 				ret = append(ret, tmp)
 			}
-			tmp.Path = line[1]
+			tmp.Path = val
 		case "Size":
-			if line[1] == "" {
+			if val == "" {
 				tmp.Size = 0
 			} else {
-				tmp.Size, err = strconv.ParseInt(line[1], 10, 64)
+				tmp.Size, err = strconv.ParseInt(val, 10, 64)
 				if err != nil {
 					return nil, err
 				}
 			}
 		case "Packed Size":
-			if line[1] == "" {
+			if val == "" {
 				tmp.PackedSize = 0
 			} else {
-				tmp.PackedSize, err = strconv.ParseInt(line[1], 10, 64)
+				tmp.PackedSize, err = strconv.ParseInt(val, 10, 64)
 				if err != nil {
 					return nil, err
 				}
 			}
 		case "Modified":
-			tmp.Modified = line[1]
+			tmp.Modified = val
 		case "Attributes":
-			tmp.Attributes = line[1]
+			tmp.Attributes = val
 		case "CRC":
-			tmp.CRC = line[1]
+			tmp.CRC = val
 		}
 	}
 	return ret, br.Err()
