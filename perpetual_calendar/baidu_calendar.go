@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
@@ -156,36 +155,35 @@ func SaveCalendar(dsnSrc string) error {
 		return res.Error
 	}
 	// 每次重建数据表
-	err = db.AutoMigrate(PerpetualCalendarAlmanac{})
+	err = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4").AutoMigrate(PerpetualCalendarAlmanac{})
 	if err != nil {
 		return err
 	}
 
+	var data []PerpetualCalendarAlmanac
 	// 起止时间按照百度万年历得到
 	start := time.Date(1900, time.February, 1, 0, 0, 0, 0, time.Local)
 	end := time.Date(2050, time.December, 1, 0, 0, 0, 0, time.Local)
-	wg := sync.WaitGroup{}
 	// 由于每次查询包含前一个月,当月,下个月,因此每次都增加3个月进行查询
 	for ; start.Before(end); start = start.AddDate(0, 3, 0) {
-		wg.Add(1)
 		y, m, _ := start.Date()
-		go func(y, m int) {
-			defer wg.Done()
-			for { // 使用协程并发请求,提高速度,出现错误时重试
-				data, err := GetPerpetualCalendar(y, m)
-				if err != nil {
-					fmt.Println("GetPerpetualCalendar", y, m, err)
-					continue // 报错重试,直到成功
-				}
-				res := db.Create(&data)
-				if res.Error != nil {
-					fmt.Println("Create", y, m, res.Error)
-					continue // 报错重试,直到成功
-				}
+		for { // 使用协程并发请求,提高速度,出现错误时重试
+			data, err = GetPerpetualCalendar(y, int(m))
+			if err == nil {
 				break
 			}
-		}(y, int(m))
+			// 报错重试,直到成功
+			fmt.Println("GetPerpetualCalendar", y, m, err)
+		}
+
+		for {
+			res := db.Create(&data)
+			if res.Error == nil {
+				break
+			}
+			// 报错重试,直到成功
+			fmt.Println("Create", y, m, res.Error)
+		}
 	}
-	wg.Wait()
 	return nil
 }
