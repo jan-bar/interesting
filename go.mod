@@ -1,14 +1,14 @@
-module interesting
+module github.com/jan-bar/interesting
 
 go 1.21
 
 require (
-	github.com/xuri/excelize/v2 v2.7.1
-	golang.org/x/sys v0.11.0
-	golang.org/x/text v0.12.0
-	gorm.io/driver/mysql v1.5.1
-	gorm.io/driver/sqlite v1.5.3
-	gorm.io/gorm v1.25.4
+	golang.org/x/mod v0.13.0
+	golang.org/x/sys v0.13.0
+	golang.org/x/text v0.13.0
+	gorm.io/driver/mysql v1.5.2
+	gorm.io/driver/sqlite v1.5.4
+	gorm.io/gorm v1.25.5
 )
 
 require (
@@ -16,11 +16,4 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/richardlehane/mscfb v1.0.4 // indirect
-	github.com/richardlehane/msoleps v1.0.3 // indirect
-	github.com/xuri/efp v0.0.0-20220603152613-6918739fd470 // indirect
-	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
 )
