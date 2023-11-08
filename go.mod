@@ -3,9 +3,9 @@ module github.com/jan-bar/interesting
 go 1.21
 
 require (
-	golang.org/x/mod v0.13.0
-	golang.org/x/sys v0.13.0
-	golang.org/x/text v0.13.0
+	golang.org/x/mod v0.14.0
+	golang.org/x/sys v0.14.0
+	golang.org/x/text v0.14.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.5

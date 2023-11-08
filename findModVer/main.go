@@ -39,7 +39,7 @@ func test(path string) error {
 		return err
 	}
 	defer func() {
-		_ = cmd.Wait()
+		_ = cmd.Process.Kill()
 	}()
 
 	br := bufio.NewScanner(cr)
@@ -48,7 +48,7 @@ func test(path string) error {
 			return 0, nil, nil
 		}
 		if i := bytes.IndexByte(data, '}'); i >= 0 {
-			return i + 2, data[:i+1], nil
+			return i + 1, data[:i+1], nil
 		}
 		if atEOF {
 			return len(data), data, nil
@@ -65,7 +65,7 @@ func test(path string) error {
 	for br.Scan() {
 		err = json.Unmarshal(br.Bytes(), &md)
 		if err != nil {
-			return err
+			continue
 		}
 
 		err = parseModFile(md.GoMod, &list)
