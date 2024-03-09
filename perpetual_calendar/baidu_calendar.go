@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -85,6 +83,7 @@ func (PerpetualCalendarAlmanac) TableName() string {
 func GetPerpetualCalendar(year, mouth int) ([]PerpetualCalendarAlmanac, error) {
 	u := url.Values{}
 	u.Add("tn", "wisetpl")
+	u.Add("oe", "utf8")
 	u.Add("format", "json")
 	u.Add("resource_id", "39043") // 这个用浏览器请求后得到的
 	u.Add("query", fmt.Sprintf("%d年%d月", year, mouth))
@@ -97,8 +96,8 @@ func GetPerpetualCalendar(year, mouth int) ([]PerpetualCalendarAlmanac, error) {
 	}
 	defer resp.Body.Close()
 
-	var ret PerpetualCalendar // 需要将gbk转为utf8
-	err = json.NewDecoder(transform.NewReader(resp.Body, simplifiedchinese.GBK.NewDecoder())).Decode(&ret)
+	var ret PerpetualCalendar
+	err = json.NewDecoder(resp.Body).Decode(&ret)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +132,12 @@ func SaveCalendar(dsnSrc string) error {
 		return errors.New("dsn error")
 	}
 
+	var isMysql bool
 	var gormOpen gorm.Dialector
 	switch strings.ToLower(dsnSrc[:iDsn]) {
 	case "mysql":
 		gormOpen = mysql.Open(dsnSrc[iDsn+1:])
+		isMysql = true
 	case "sqlite":
 		gormOpen = sqlite.Open(dsnSrc[iDsn+1:])
 	default:
@@ -154,8 +155,11 @@ func SaveCalendar(dsnSrc string) error {
 	if res.Error != nil {
 		return res.Error
 	}
-	// 每次重建数据表
-	err = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4").AutoMigrate(PerpetualCalendarAlmanac{})
+
+	if isMysql {
+		db = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4")
+	}
+	err = db.AutoMigrate(PerpetualCalendarAlmanac{})
 	if err != nil {
 		return err
 	}
